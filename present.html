@@ -64,6 +64,8 @@
   .bigsub { font-size: 22px; color: var(--muted); margin-top: 10px; }
   .welcome .qtext { margin-bottom: 14px; }
   .welcome p { font-size: 20px; color: var(--muted); margin: 0; max-width: 680px; }
+  .welcome .count { display: flex; align-items: baseline; gap: 16px; margin-top: 40px; }
+  .welcome .count .bigsub { margin-top: 0; }
 
   .dock { display: flex; align-items: center; gap: 8px; flex-wrap: nowrap; min-width: 0; padding-top: 12px; border-top: 1px solid var(--line); opacity: .55; transition: opacity .2s; }
   .dock:hover, .dock:focus-within { opacity: 1; }
@@ -214,25 +216,24 @@ function renderMessage(title, text) {
 }
 
 function renderWelcome() {
-  renderMessage('Zeskanuj kod i zostań na stronie', 'Kilka krótkich pytań – wyniki omówimy razem przy stole.');
+  const n = BOOT ? BOOT.questions.length : 5;
+  panel.innerHTML = '';
+  panel.appendChild(h('div', { class: 'welcome' }, [
+    h('div', { class: 'qnum', text: 'Round table' }),
+    h('div', { class: 'qtext', text: 'Zeskanuj kod i odpowiedz na ' + n + ' krótkich pytań' }),
+    h('p', { text: 'Zajmie to minutę. Potem razem omówimy wyniki.' }),
+    h('div', { class: 'count' }, [h('span', { class: 'big', id: 'respCount', text: '0' }), h('span', { class: 'bigsub', id: 'respSub', text: 'osób już odpowiada' })])
+  ]));
 }
 
 function renderQuestion(q) {
   panel.innerHTML = '';
   const idx = QINDEX[q.id];
   panel.appendChild(h('div', { class: 'qnum' }, [
-    h('span', { text: 'Pytanie ' + (idx + 1) + ' / ' + QUESTIONS.length }),
+    h('span', { text: 'Pytanie ' + (idx + 1) }),
     q.type === 'multi' ? h('span', { class: 'chip', text: 'max ' + (q.max || 2) + ' odpowiedzi' }) : null
   ]));
   panel.appendChild(h('div', { class: 'qtext', text: q.text }));
-  if (q.type === 'email') {
-    panel.appendChild(h('div', {}, [
-      h('div', { class: 'big', id: 'emailCount', text: '0' }),
-      h('div', { class: 'bigsub', id: 'emailSub', text: 'osób zostawiło maila' })
-    ]));
-    panel.appendChild(h('div', { class: 'meta', text: 'Adresy trafiają tylko do prywatnego arkusza – nie pokazujemy ich tutaj.' }));
-    return;
-  }
   const bars = h('div', { class: 'bars', id: 'bars' });
   q.options.forEach(function (label, i) {
     bars.appendChild(h('div', { class: 'brow', 'data-i': i }, [
@@ -245,15 +246,18 @@ function renderQuestion(q) {
 }
 
 function paintPanel() {
-  if (!state || !state.active || !BOOT) return;
-  const q = QUESTIONS[QINDEX[state.active]];
-  if (!q) return;
-  const R = results && results.byQ[q.id] ? results.byQ[q.id] : { total: 0, counts: q.options ? q.options.map(function () { return 0; }) : null };
-  if (q.type === 'email') {
-    document.getElementById('emailCount').textContent = R.total;
-    document.getElementById('emailSub').textContent = plural(R.total, 'osoba zostawiła maila', 'osoby zostawiły maila', 'osób zostawiło maila');
+  if (!BOOT) return;
+  const q = state && state.active ? QUESTIONS[QINDEX[state.active]] : null;
+  if (!q) {
+    const el = document.getElementById('respCount');
+    if (el) {
+      const p = results ? results.participants : 0;
+      el.textContent = p;
+      document.getElementById('respSub').textContent = plural(p, 'osoba już odpowiada', 'osoby już odpowiadają', 'osób już odpowiada');
+    }
     return;
   }
+  const R = results && results.byQ[q.id] ? results.byQ[q.id] : { total: 0, counts: q.options.map(function () { return 0; }) };
   const total = R.total || 0;
   const max = Math.max.apply(null, R.counts.concat([0]));
   document.querySelectorAll('#bars .brow').forEach(function (row) {
@@ -274,10 +278,10 @@ function paintPanel() {
 
 function render() {
   if (!BOOT) return;
-  const key = state && state.active ? state.round + ':' + state.active : 'welcome';
+  const key = state && state.active && QINDEX[state.active] !== undefined ? state.round + ':' + state.active : 'welcome';
   if (key !== panelKey) {
     panelKey = key;
-    if (!state || !state.active || !QUESTIONS[QINDEX[state.active]]) renderWelcome();
+    if (!state || !state.active || QINDEX[state.active] === undefined) renderWelcome();
     else renderQuestion(QUESTIONS[QINDEX[state.active]]);
   }
   paintPanel();
@@ -300,10 +304,10 @@ function renderDock() {
   });
   dock.appendChild(h('span', { class: 'sp' }));
   dock.appendChild(h('button', { class: 'dbtn', text: state && state.hidden ? 'Pokaż wyniki' : 'Ukryj wyniki', onclick: toggleHidden }));
-  dock.appendChild(h('button', { class: 'dbtn', text: 'Zatrzymaj', onclick: function () { setActive(null); } }));
+  dock.appendChild(h('button', { class: 'dbtn' + (!active || QINDEX[active] === undefined ? ' on' : ''), text: 'Start', title: 'Ekran startowy z kodem QR', onclick: function () { setActive(null); } }));
   dock.appendChild(h('button', { class: 'dbtn', text: 'Duży QR', onclick: function () { document.getElementById('qrfull').classList.add('show'); } }));
   dock.appendChild(h('button', { class: 'dbtn warn', text: resetArmed ? 'Na pewno? Kliknij jeszcze raz' : 'Wyzeruj wyniki', onclick: resetResults }));
-  dock.appendChild(h('span', { class: 'kbd', text: '← → pytania · H ukryj · S stop · Q kod' }));
+  dock.appendChild(h('span', { class: 'kbd', text: '← → pytania · H ukryj · S start · Q kod' }));
 }
 
 /* ---------- actions ---------- */
@@ -358,11 +362,10 @@ function resetResults() {
   enqueue('areset', null, function () { toast('Wyniki wyzerowane – nowa runda'); });
 }
 function step(dir) {
-  const cur = state && state.active ? QINDEX[state.active] : -1;
-  let next = cur + dir;
-  if (next < 0) next = 0;
-  if (next >= QUESTIONS.length) next = QUESTIONS.length - 1;
-  setActive(QUESTIONS[next].id);
+  const at = state && state.active ? QINDEX[state.active] : undefined;
+  const cur = at === undefined ? -1 : at;
+  const next = Math.min(cur + dir, QUESTIONS.length - 1);
+  setActive(next < 0 ? null : QUESTIONS[next].id);
 }
 document.addEventListener('keydown', function (e) {
   if (!BOOT) return;
@@ -402,7 +405,7 @@ function start() {
   api('config')
     .then(function (cfg) {
       BOOT = cfg;
-      QUESTIONS = cfg.questions;
+      QUESTIONS = cfg.questions.filter(function (q) { return q.type !== 'email'; });
       QUESTIONS.forEach(function (q, i) { QINDEX[q.id] = i; });
       document.getElementById('eyebrow').textContent = cfg.event.label;
       document.getElementById('ttl').textContent = cfg.event.title;
