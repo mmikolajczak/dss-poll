@@ -257,7 +257,7 @@ function renderWelcome() {
     h('div', { class: 'qnum', text: 'Round table' }),
     h('div', { class: 'qtext', text: 'Zeskanuj kod i odpowiedz na ' + n + ' krótkich pytań' }),
     h('p', { text: 'Zajmie to minutę. Potem razem omówimy wyniki.' }),
-    h('div', { class: 'count' }, [h('span', { class: 'big', id: 'respCount', text: '0' }), h('span', { class: 'bigsub', id: 'respSub', text: 'osób już odpowiada' })])
+    h('div', { class: 'count' }, [h('span', { class: 'big', id: 'respCount', text: '0' }), h('span', { class: 'bigsub', id: 'respSub', text: 'osób już odpowiedziało' })])
   ]));
 }
 
@@ -288,7 +288,7 @@ function paintPanel() {
     if (el) {
       const p = results ? results.participants : 0;
       el.textContent = p;
-      document.getElementById('respSub').textContent = plural(p, 'osoba już odpowiada', 'osoby już odpowiadają', 'osób już odpowiada');
+      document.getElementById('respSub').textContent = plural(p, 'osoba już odpowiedziała', 'osoby już odpowiedziały', 'osób już odpowiedziało');
     }
     return;
   }
