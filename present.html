@@ -29,7 +29,7 @@
     background: radial-gradient(1200px 700px at 85% -10%, #1d3a78 0%, rgba(29,58,120,0) 60%), linear-gradient(160deg, var(--bg2), var(--bg) 60%);
     color: var(--ink); -webkit-font-smoothing: antialiased; overflow: hidden;
   }
-  .app { height: 100vh; display: grid; grid-template-rows: auto 1fr auto; padding: 26px 34px 18px; gap: 20px; }
+  .app { height: 100vh; display: grid; grid-template-rows: auto 1fr auto; grid-template-columns: minmax(0, 1fr); padding: 26px 34px 18px; gap: 20px; }
 
   .top { display: flex; justify-content: space-between; align-items: flex-start; gap: 20px; }
   .eyebrow { font-size: 13px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--accent); }
@@ -40,7 +40,7 @@
   .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 0 4px rgba(47,211,177,.18); }
   .dot.bad { background: var(--danger); box-shadow: 0 0 0 4px rgba(255,107,129,.18); }
 
-  .stage { display: grid; grid-template-columns: minmax(260px, 30%) 1fr; gap: 34px; min-height: 0; }
+  .stage { display: grid; grid-template-columns: minmax(240px, 30%) minmax(0, 1fr); gap: 34px; min-height: 0; }
   .qrcard { background: #fff; color: #0f1b33; border-radius: 26px; padding: 24px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; box-shadow: 0 30px 80px rgba(0,0,0,.35); align-self: center; }
   .qrbox { width: 100%; max-width: 340px; aspect-ratio: 1; display: grid; place-items: center; }
   .qrbox svg, .qrbox img { width: 100%; height: 100%; display: block; }
@@ -57,7 +57,7 @@
   .brow .blbl b { font-size: 1.15em; font-weight: 800; }
   .btrack { height: 16px; border-radius: 99px; background: rgba(255,255,255,.08); overflow: hidden; }
   .bfill { height: 100%; width: 0; border-radius: 99px; background: linear-gradient(90deg, var(--accent2), #8cc0ff); transition: width .8s cubic-bezier(.2,.8,.2,1); }
-  .brow.top .bfill { background: linear-gradient(90deg, var(--accent), #7ff0d8); }
+  .brow.lead .bfill { background: linear-gradient(90deg, var(--accent), #7ff0d8); }
   .meta { margin-top: 22px; color: var(--muted); font-size: 16px; font-weight: 600; }
   .veil { position: absolute; inset: -8px; backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); background: rgba(12,23,48,.55); border-radius: 18px; display: grid; place-items: center; font-size: 22px; font-weight: 700; color: var(--ink); }
   .big { font-size: clamp(64px, 9vw, 130px); font-weight: 800; letter-spacing: -.03em; line-height: 1; color: var(--accent); }
@@ -65,14 +65,15 @@
   .welcome .qtext { margin-bottom: 14px; }
   .welcome p { font-size: 20px; color: var(--muted); margin: 0; max-width: 680px; }
 
-  .dock { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding-top: 12px; border-top: 1px solid var(--line); opacity: .55; transition: opacity .2s; }
+  .dock { display: flex; align-items: center; gap: 8px; flex-wrap: nowrap; min-width: 0; padding-top: 12px; border-top: 1px solid var(--line); opacity: .55; transition: opacity .2s; }
   .dock:hover, .dock:focus-within { opacity: 1; }
-  .dbtn { font: inherit; font-size: 14px; font-weight: 600; color: var(--ink); background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 9px 13px; cursor: pointer; white-space: nowrap; max-width: 260px; overflow: hidden; text-overflow: ellipsis; }
+  .dbtn { font: inherit; font-size: 14px; font-weight: 600; color: var(--ink); background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 9px 13px; cursor: pointer; white-space: nowrap; max-width: 230px; flex: 0 0 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+  .dbtn.q { flex: 1 1 0; }
   .dbtn:hover { background: rgba(255,255,255,.12); }
   .dbtn.on { background: var(--accent); color: #062a24; border-color: var(--accent); }
   .dbtn.warn { color: var(--danger); }
   .sp { flex: 1; }
-  .kbd { font-size: 12px; color: var(--muted); }
+  .kbd { font-size: 12px; color: var(--muted); white-space: nowrap; flex: none; }
 
   .qrfull { position: fixed; inset: 0; background: #fff; color: #0f1b33; display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 20; cursor: pointer; }
   .qrfull.show { display: flex; }
@@ -80,6 +81,23 @@
   .qrfull .scan { font-size: 34px; }
   .toast { position: fixed; left: 50%; bottom: 80px; transform: translateX(-50%); background: #fff; color: #0f1b33; padding: 10px 16px; border-radius: 12px; font-size: 14px; font-weight: 600; opacity: 0; transition: opacity .2s; pointer-events: none; z-index: 30; }
   .toast.show { opacity: 1; }
+
+  /* Small projectors / laptops: keep a 6-option question and the dock on one screen. */
+  @media (max-width: 1700px) { .kbd { display: none; } }
+  @media (max-height: 820px) {
+    .app { padding: 18px 26px 12px; gap: 12px; }
+    .ttl { font-size: 19px; } .sub { font-size: 13px; } .eyebrow { font-size: 12px; }
+    .stage { gap: 26px; }
+    .qrcard { padding: 18px; border-radius: 22px; }
+    .qrbox { max-width: 270px; }
+    .scan { font-size: 18px; margin-top: 10px; }
+    .qtext { font-size: clamp(24px, 2.7vw, 36px); margin: 6px 0 14px; }
+    .bars { gap: 9px; }
+    .brow .blbl { font-size: 15px; margin-bottom: 4px; }
+    .btrack { height: 11px; }
+    .meta { margin-top: 10px; font-size: 14px; }
+    .dbtn { font-size: 13px; padding: 7px 11px; }
+  }
 </style>
 </head>
 <body>
@@ -245,7 +263,7 @@ function paintPanel() {
     row.querySelector('.pct').textContent = pct + '%';
     row.querySelector('.n').textContent = n ? '· ' + n : '';
     row.querySelector('.bfill').style.width = pct + '%';
-    row.classList.toggle('top', n > 0 && n === max);
+    row.classList.toggle('lead', n > 0 && n === max);
   });
   document.getElementById('meta').textContent = total + ' ' + plural(total, 'odpowiedź', 'odpowiedzi', 'odpowiedzi') + (q.type === 'multi' ? ' · procent osób, każdy mógł wybrać do ' + (q.max || 2) : '');
   const bars = document.getElementById('bars');
@@ -278,7 +296,7 @@ function renderDock() {
   const dock = document.getElementById('dock');
   dock.innerHTML = '';
   QUESTIONS.forEach(function (q, i) {
-    dock.appendChild(h('button', { class: 'dbtn' + (active === q.id ? ' on' : ''), title: q.text, text: (i + 1) + '. ' + q.text, onclick: function () { setActive(q.id); } }));
+    dock.appendChild(h('button', { class: 'dbtn q' + (active === q.id ? ' on' : ''), title: q.text, text: (i + 1) + '. ' + q.text, onclick: function () { setActive(q.id); } }));
   });
   dock.appendChild(h('span', { class: 'sp' }));
   dock.appendChild(h('button', { class: 'dbtn', text: state && state.hidden ? 'Pokaż wyniki' : 'Ukryj wyniki', onclick: toggleHidden }));
@@ -289,20 +307,46 @@ function renderDock() {
 }
 
 /* ---------- actions ---------- */
-function call(action, params, onOk) {
+// Admin actions go out one at a time, in click order. Consecutive show/hide/switch
+// clicks are merged, so fast key presses never race each other on the server.
+let queue = [];
+let sending = false;
+let actionSeq = 0;
+function enqueue(action, patch, onOk) {
+  actionSeq++;
   busy = true;
-  api(action, Object.assign({ key: KEY }, params || {}))
-    .then(function (v) { busy = false; failures = 0; state = v.state; results = v.results; render(); if (onOk) onOk(); })
-    .catch(function (e) { busy = false; toast('Błąd: ' + (e && e.message ? e.message : 'połączenie') + ' – spróbuj jeszcze raz'); poll(); });
+  const last = queue[queue.length - 1];
+  if (action === 'aset' && last && last.action === 'aset') Object.assign(last.patch, patch);
+  else queue.push({ action: action, patch: patch ? Object.assign({}, patch) : null, onOk: onOk });
+  flush();
+}
+function flush() {
+  if (sending || !queue.length) return;
+  const op = queue.shift();
+  sending = true;
+  const params = { key: KEY };
+  if (op.patch) params.p = JSON.stringify(op.patch);
+  api(op.action, params)
+    .then(function (v) {
+      sending = false;
+      if (!queue.length) { busy = false; failures = 0; state = v.state; results = v.results; render(); }
+      if (op.onOk) op.onOk();
+      flush();
+    })
+    .catch(function (e) {
+      sending = false; queue = []; busy = false;
+      toast('Błąd: ' + (e && e.message ? e.message : 'połączenie') + ' – spróbuj jeszcze raz');
+      poll();
+    });
 }
 function setActive(qid) {
   if (state) { state.active = qid; render(); }
-  call('aset', { p: JSON.stringify({ active: qid }) });
+  enqueue('aset', { active: qid });
 }
 function toggleHidden() {
   const next = !(state && state.hidden);
   if (state) { state.hidden = next; render(); }
-  call('aset', { p: JSON.stringify({ hidden: next }) });
+  enqueue('aset', { hidden: next });
 }
 function resetResults() {
   if (!resetArmed) {
@@ -311,7 +355,7 @@ function resetResults() {
     return;
   }
   resetArmed = false; clearTimeout(resetTimer);
-  call('areset', {}, function () { toast('Wyniki wyzerowane – nowa runda'); });
+  enqueue('areset', null, function () { toast('Wyniki wyzerowane – nowa runda'); });
 }
 function step(dir) {
   const cur = state && state.active ? QINDEX[state.active] : -1;
@@ -336,11 +380,13 @@ let pollTimer;
 function poll() {
   clearTimeout(pollTimer);
   if (busy) { pollTimer = setTimeout(poll, 700); return; }
+  const seq = actionSeq;
   api('aview', { key: KEY })
     .then(function (v) {
       failures = 0;
       document.getElementById('conn').classList.remove('bad');
-      if (!busy) { state = v.state; results = v.results; render(); }
+      // Ignore a snapshot taken before the presenter's latest click.
+      if (!busy && seq === actionSeq) { state = v.state; results = v.results; render(); }
       pollTimer = setTimeout(poll, 2000);
     })
     .catch(function (e) {

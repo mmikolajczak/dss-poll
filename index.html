@@ -151,7 +151,8 @@ function h(tag, attrs, kids) {
 const store = {
   mem: {},
   get: function (k) { try { const v = window.localStorage.getItem(k); if (v !== null) return v; } catch (e) {} return this.mem[k] || null; },
-  set: function (k, v) { this.mem[k] = v; try { window.localStorage.setItem(k, v); } catch (e) {} }
+  set: function (k, v) { this.mem[k] = v; try { window.localStorage.setItem(k, v); } catch (e) {} },
+  remove: function (k) { delete this.mem[k]; try { window.localStorage.removeItem(k); } catch (e) {} }
 };
 function randId() {
   const a = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
@@ -174,10 +175,10 @@ function toast(msg) {
 let view = null;           // last server view
 let screenKey = '';        // what is currently rendered
 let selection = [];        // indices chosen on the current question
-let sending = false;
 let failures = 0;
 
-function localKey(qid) { return 'drpoll_ans_' + (view ? view.round : 0) + '_' + qid; }
+function localKeyFor(round, qid) { return 'drpoll_ans_' + round + '_' + qid; }
+function localKey(qid) { return localKeyFor(view ? view.round : 0, qid); }
 function myAnswer(qid) { const v = store.get(localKey(qid)); try { return v ? JSON.parse(v) : null; } catch (e) { return null; } }
 
 /* ---------- screens ---------- */
@@ -348,50 +349,91 @@ function render() {
 }
 
 /* ---------- server calls ---------- */
+// A vote shows as saved right away and is delivered in the background from a small outbox
+// (kept in localStorage), retrying until the server confirms. Slow responses or flaky
+// conference Wi-Fi never block the phone, and a reload resumes delivery.
+const OUTBOX_KEY = 'drpoll_outbox';
+function outboxRead() { try { return JSON.parse(store.get(OUTBOX_KEY) || '[]'); } catch (e) { return []; } }
+function outboxWrite(list) { store.set(OUTBOX_KEY, JSON.stringify(list)); }
+function sameItem(a, b) { return a.round === b.round && a.qid === b.qid; }
+let delivering = false;
+let deliverTimer = null;
+
 function send(q, extra) {
-  if (sending) return;
-  sending = true;
   const payload = extra || { choices: selection.slice() };
-  const btns = barInner.querySelectorAll('button');
-  btns.forEach(function (b) { b.setAttribute('disabled', 'disabled'); });
-  const primary = barInner.querySelector('.primary');
-  if (primary) primary.textContent = 'Wysyłam…';
-  function restore() {
-    btns.forEach(function (b) { b.removeAttribute('disabled'); });
-    if (primary) primary.textContent = 'Wyślij';
-  }
-  api('submit', { pid: pid, qid: q.id, p: JSON.stringify(payload) })
+  const item = { round: view ? view.round : 0, qid: q.id, p: payload, tries: 0 };
+  store.set(localKey(q.id), JSON.stringify(q.type === 'email' ? { email: true } : { choices: payload.choices }));
+  outboxWrite(outboxRead().filter(function (x) { return !sameItem(x, item); }).concat([item]));
+  submitSeq++;
+  applyOutbox(view);
+  screenKey = '';
+  render();
+  deliver();
+}
+
+// Server counts don't include votes still in the outbox; add them so our own vote never flickers away.
+function applyOutbox(v) {
+  if (!v || !v.active || !v.counts) return;
+  outboxRead().forEach(function (x) {
+    if (x.round !== v.round || x.qid !== v.active || !x.p || !x.p.choices) return;
+    v.total = (v.total || 0) + 1;
+    x.p.choices.forEach(function (c) { v.counts[c] = (v.counts[c] || 0) + 1; });
+  });
+}
+
+function deliver() {
+  if (delivering || !view) return;
+  clearTimeout(deliverTimer);
+  let list = outboxRead();
+  const stale = list.filter(function (x) { return x.round !== view.round; });
+  if (stale.length) { list = list.filter(function (x) { return x.round === view.round; }); outboxWrite(list); }
+  if (!list.length) return;
+  const item = list[0];
+  delivering = true;
+  api('submit', { pid: pid, qid: item.qid, p: JSON.stringify(item.p) })
     .then(function (res) {
-      sending = false;
-      if (res && res.ok) {
-        store.set(localKey(q.id), JSON.stringify(q.type === 'email' ? { email: true } : { choices: payload.choices }));
+      delivering = false;
+      outboxWrite(outboxRead().filter(function (x) { return !sameItem(x, item); }));
+      if (!(res && res.ok)) {
+        // Rejected for good (question already closed, bad input): undo the local "answered" state.
+        store.remove(localKeyFor(item.round, item.qid));
+        const why = res && res.reason;
+        toast(why === 'closed' ? 'Pytanie zamknięto, zanim głos dotarł – nie został zapisany.'
+          : why === 'email' ? 'Sprawdź adres e-mail' : 'Nie udało się zapisać odpowiedzi – spróbuj jeszcze raz.');
         screenKey = '';
         render();
-        poll();
-      } else {
-        const why = res && res.reason;
-        toast(why === 'closed' ? 'To pytanie jest już zamknięte.' : why === 'email' ? 'Sprawdź adres e-mail' : 'Nie udało się wysłać, spróbuj jeszcze raz.');
-        restore();
-        if (why === 'closed') poll();
       }
+      // Server results are cached for ~2 s; wait that long so the confirmed vote is included.
+      submitSeq++;
+      clearTimeout(pollTimer);
+      pollTimer = setTimeout(poll, 2200);
+      deliver();
     })
     .catch(function () {
-      sending = false;
-      toast('Problem z połączeniem – spróbuj jeszcze raz.');
-      restore();
+      delivering = false;
+      const tries = (item.tries || 0) + 1;
+      outboxWrite(outboxRead().map(function (x) { if (sameItem(x, item)) x.tries = tries; return x; }));
+      if (tries === 3) toast('Słabe połączenie – głos wyślę, jak tylko się da.');
+      deliverTimer = setTimeout(deliver, Math.min(tries, 5) * 2000);
     });
 }
 
 let pollTimer = null;
 let inFlight = false;
+let submitSeq = 0;
 function poll() {
   clearTimeout(pollTimer);
   if (inFlight) { pollTimer = setTimeout(poll, 800); return; }
   inFlight = true;
+  const seq = submitSeq;
   api('view', { pid: pid })
     .then(function (v) {
       inFlight = false; failures = 0;
+      // Drop answers fetched before our own vote landed; they would show stale counts.
+      if (seq !== submitSeq) { poll(); return; }
+      applyOutbox(v);
       view = v;
+      deliver();
       render();
       schedule();
     })
