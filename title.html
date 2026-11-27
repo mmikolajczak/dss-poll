@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AI at scale in healthcare · DSS 2026 round table</title>
+<meta name="robots" content="noindex">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Work+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; }
+  body { overflow: hidden; color: #f4f7ff; font-family: 'Work Sans', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; -webkit-font-smoothing: antialiased;
+    background: radial-gradient(1100px 760px at 88% -8%, #23468f 0%, rgba(35,70,143,0) 62%),
+                radial-gradient(900px 620px at -10% 110%, rgba(47,211,177,.16) 0%, rgba(47,211,177,0) 60%),
+                linear-gradient(160deg, #12224a, #0c1730 62%); }
+  .wrap { height: 100vh; display: grid; grid-template-rows: auto 1fr auto; padding: 5.2vh 6vw 5.6vh; }
+  .eyebrow { font-size: clamp(14px, 1.35vw, 24px); font-weight: 700; letter-spacing: .16em; text-transform: uppercase; color: #2fd3b1; display: flex; align-items: center; gap: 14px; }
+  .eyebrow i { display: block; width: 46px; height: 3px; border-radius: 2px; background: #2fd3b1; }
+  .main { align-self: center; }
+  h1 { margin: 0; font-size: clamp(56px, 8.6vw, 168px); line-height: .98; font-weight: 800; letter-spacing: -.035em; }
+  h1 span { color: #2fd3b1; }
+  .sub { margin-top: 3.4vh; font-size: clamp(22px, 2.75vw, 52px); font-weight: 500; line-height: 1.15; color: #c9d5ee; letter-spacing: -.01em; max-width: 30ch; }
+  .foot { display: flex; justify-content: space-between; align-items: flex-end; gap: 30px; border-top: 1px solid rgba(255,255,255,.12); padding-top: 3vh; }
+  .host { font-size: clamp(16px, 1.45vw, 26px); font-weight: 600; }
+  .host small { display: block; font-size: .78em; font-weight: 500; color: #9fb0d1; margin-top: 4px; }
+  .by { display: flex; align-items: center; gap: 14px; color: #9fb0d1; font-size: clamp(16px, 1.4vw, 24px); font-weight: 500; }
+  .by .logo { height: clamp(34px, 3.4vw, 62px); width: auto; color: #fff; display: block; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="eyebrow"><i></i>Data Science Summit 2026 · Round table</div>
+  <div class="main">
+    <h1>AI at scale<br>in <span>healthcare</span></h1>
+    <div class="sub">How to protect models and data against attacks</div>
+  </div>
+  <div class="foot">
+    <div class="host">Michał Mikołajczak<small>Round table host</small></div>
+    <div class="by"><span>by</span><svg class="logo" role="img" aria-label="datarabbit" viewBox="0 0 1056 235" fill="none" xmlns="http://www.w3.org/2000/svg"><g clip-path="url(#dr-logo-clip)"><path d="M45.5063 110.186C57.7502 110.186 68.9734 114.883 73.4628 122.847H74.0753C73.8712 121.622 73.667 119.784 73.667 114.883V72H98.1547V205.141H75.7077V201.057C75.7077 197.177 75.9119 194.523 76.1156 192.685H75.5036C69.5859 202.486 58.158 208 44.69 208C18.3657 207.796 0 187.784 0 158.991C0 130.198 19.182 110.186 45.5063 110.186ZM74.8915 158.583C74.8915 142.859 64.484 131.832 49.7916 131.832C35.5071 131.832 24.8958 142.859 24.8958 158.583C24.8958 174.51 35.3031 185.538 49.7916 185.538C64.2803 185.538 74.8915 174.51 74.8915 158.583Z" fill="currentColor"/><path d="M156.52 110.186C170.601 110.186 181.416 116.312 186.11 124.684H186.722C186.518 123.254 186.313 121.416 186.313 116.516V113.044H208.965V204.936H186.313V200.648C186.313 196.564 186.518 194.114 186.722 192.071H186.11C180.804 201.669 169.376 207.591 155.5 207.591C129.176 207.591 110.81 187.579 110.81 158.786C110.606 130.197 130.196 110.186 156.52 110.186ZM185.497 158.582C185.497 142.858 175.09 131.831 160.397 131.831C146.113 131.831 135.502 142.858 135.502 158.582C135.502 174.51 145.909 185.741 160.397 185.741C175.09 185.741 185.497 174.51 185.497 158.582Z" fill="currentColor"/><path d="M232.017 134.283H223.243V113.045H232.017V89.5615H256.913V113.045H278.136V134.283H256.913V183.291H275.483V204.937H232.017V134.283Z" fill="currentColor"/><path d="M333.031 110.186C347.111 110.186 357.926 116.312 362.62 124.684H363.232C363.028 123.254 362.824 121.416 362.824 116.516V113.044H385.679V204.936H363.028V200.648C363.028 196.564 363.232 194.114 363.436 192.071H362.824C357.518 201.669 346.091 207.591 332.214 207.591C305.89 207.591 287.525 187.579 287.525 158.786C287.32 130.197 306.706 110.186 333.031 110.186ZM362.008 158.582C362.008 142.858 351.601 131.831 336.908 131.831C322.624 131.831 312.012 142.858 312.012 158.582C312.012 174.51 322.419 185.741 336.908 185.741C351.601 185.741 362.008 174.51 362.008 158.582Z" fill="currentColor"/><path d="M624.28 113.249V135.099H604.692V205.14H580V113.249H624.28Z" fill="currentColor"/><path d="M678.156 110.39C692.238 110.39 703.05 116.516 707.747 124.889H708.355C708.154 123.459 707.948 121.621 707.948 116.72V113.249H731.011V205.14H708.355V200.852C708.355 196.768 708.562 194.318 708.768 192.276H708.154C702.849 201.873 691.423 207.796 677.543 207.796C651.221 207.796 632.855 187.783 632.855 158.991C632.448 130.402 652.036 110.39 678.156 110.39ZM707.34 158.786C707.34 143.062 696.93 132.036 682.24 132.036C667.952 132.036 657.341 143.062 657.341 158.786C657.341 174.714 667.751 185.946 682.24 185.946C696.93 185.946 707.34 174.714 707.34 158.786Z" fill="currentColor"/><path d="M801.206 208C787.738 208 776.106 202.486 770.388 193.093H769.78C769.981 194.931 770.187 197.586 770.187 201.67V205.141H747.33V72H771.816V115.291C771.816 119.988 771.615 121.826 771.409 123.255H772.023C776.715 115.496 787.738 110.391 800.185 110.391C826.507 110.391 845.486 130.402 845.486 159.195C845.687 187.988 827.12 208 801.206 208ZM820.794 158.787C820.794 142.859 810.389 132.036 795.694 132.036C781.206 132.036 770.801 142.859 770.801 158.787C770.801 174.715 780.999 185.946 795.694 185.946C810.389 185.946 820.794 174.715 820.794 158.787Z" fill="currentColor"/><path d="M909.762 208C896.294 208 884.662 202.486 878.949 193.093H878.336C878.542 194.931 878.748 197.586 878.748 201.67V205.141H855.891V72H880.584V115.291C880.584 119.988 880.378 121.826 880.177 123.255H880.785C885.482 115.496 896.501 110.391 908.947 110.391C935.274 110.391 954.249 130.402 954.249 159.195C954.249 187.988 935.883 208 909.762 208ZM929.556 158.787C929.556 142.859 919.151 132.036 904.456 132.036C889.968 132.036 879.563 142.859 879.563 158.787C879.563 174.715 889.767 185.946 904.456 185.946C918.945 185.946 929.556 174.715 929.556 158.787Z" fill="currentColor"/><path d="M962.003 86.7027C962.003 78.5345 968.536 72.2041 976.698 72.2041C984.86 72.2041 991.388 78.5345 991.388 86.7027C991.388 94.8709 984.86 101.201 976.698 101.201C968.536 101.201 962.003 94.8709 962.003 86.7027ZM964.453 205.141V113.249H989.346V205.141H964.453Z" fill="currentColor"/><path d="M1012.21 134.487H1003.43V113.249H1012.21V89.7656H1037.1V113.249H1058.32V134.487H1037.1V183.495H1055.67V205.141H1012.21V134.487Z" fill="currentColor"/><path d="M443 0C419.088 13.8418 403 39.7133 403 69.3448C403 98.9763 419.088 124.848 443 138.69C466.912 124.848 483 98.9763 483 69.3448C483 39.7133 466.912 13.8418 443 0Z" fill-rule="evenodd" clip-rule="evenodd" fill="currentColor"/><path d="M523.003 0C499.09 13.8418 483.002 39.7133 483.002 69.3448C483.002 98.9763 499.09 124.848 523.003 138.69C546.914 124.848 563 98.9763 563 69.3448C563 39.7133 546.914 13.8418 523.003 0Z" fill-rule="evenodd" clip-rule="evenodd" fill="currentColor"/><path d="M493.002 215H473.003V235.013H493.002V215Z" fill="#0241E6"/><path d="M463.003 184.979H443.003V204.993H463.003V184.979Z" fill="#60D89B"/><path d="M523.003 184.979H503.003V204.993H523.003V184.979Z" fill="#ED5757"/><path d="M413.707 169.412H552.303C538.469 145.484 512.617 129.385 483.004 129.385C453.393 129.385 427.54 145.484 413.707 169.412Z" fill-rule="evenodd" clip-rule="evenodd" fill="currentColor"/></g><defs><clipPath id="dr-logo-clip"><rect width="1056" height="235" fill="white"/></clipPath></defs></svg></div>
+  </div>
+</div>
+</body>
+</html>
