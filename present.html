@@ -75,7 +75,7 @@
   .dbtn.on { background: var(--accent); color: #062a24; border-color: var(--accent); }
   .dbtn.warn { color: var(--danger); }
   .sp { flex: 1; }
-  .kbd { font-size: 12px; color: var(--muted); white-space: nowrap; flex: none; }
+  .dbtn .short { display: none; }
 
   .qrfull { position: fixed; inset: 0; background: #fff; color: #0f1b33; display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 20; cursor: pointer; }
   .qrfull.show { display: flex; }
@@ -85,7 +85,6 @@
   .toast.show { opacity: 1; }
 
   /* Small projectors / laptops: keep a 6-option question and the dock on one screen. */
-  @media (max-width: 1700px) { .kbd { display: none; } }
   @media (max-height: 820px) {
     .app { padding: 18px 26px 12px; gap: 12px; }
     .ttl { font-size: 19px; } .sub { font-size: 13px; } .eyebrow { font-size: 12px; }
@@ -99,6 +98,42 @@
     .btrack { height: 11px; }
     .meta { margin-top: 10px; font-size: 14px; }
     .dbtn { font-size: 13px; padding: 7px 11px; }
+  }
+
+  @media (hover: none) { .dock { opacity: 1; } }
+
+  /* Phones: one column, results first, controls in a fixed bar at the bottom. */
+  @media (max-width: 760px) {
+    html, body { height: auto; }
+    body { overflow: auto; }
+    .app { height: auto; min-height: 100vh; display: block; padding: 16px 16px calc(132px + env(safe-area-inset-bottom)); }
+    .top { margin-bottom: 18px; }
+    .eyebrow { font-size: 11px; } .ttl { font-size: 18px; } .sub { font-size: 13px; }
+    .stat { padding: 6px 11px; font-size: 13px; }
+    .stage { display: flex; flex-direction: column; gap: 22px; }
+    .qrcard { align-self: center; width: min(100%, 300px); padding: 18px; border-radius: 22px; }
+    .qrbox { max-width: 230px; }
+    .scan { font-size: 18px; margin-top: 10px; }
+    body[data-screen="results"] .qrcard { display: none; }
+    .qtext { font-size: 24px; margin: 8px 0 18px; }
+    .welcome p { font-size: 16px; }
+    .welcome .count { margin-top: 22px; gap: 12px; }
+    .big { font-size: 64px; }
+    .bigsub { font-size: 17px; }
+    .bars { gap: 12px; }
+    .brow .blbl { font-size: 15px; margin-bottom: 5px; }
+    .btrack { height: 10px; }
+    .meta { font-size: 14px; }
+    .dock { position: fixed; left: 0; right: 0; bottom: 0; z-index: 10; opacity: 1;
+      display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px;
+      padding: 10px 12px calc(10px + env(safe-area-inset-bottom)); background: #0b1630; border-top: 1px solid var(--line); }
+    .dbtn { max-width: none; font-size: 15px; padding: 12px 4px; text-align: center; }
+    .dbtn.start, .dbtn.wide { grid-column: span 2; }
+    .dbtn.wide { font-size: 14px; }
+    .dbtn .full { display: none; }
+    .dbtn .short { display: inline; }
+    .sp { display: none; }
+    .toast { bottom: calc(140px + env(safe-area-inset-bottom)); }
   }
 </style>
 </head>
@@ -281,6 +316,7 @@ function render() {
   const key = state && state.active && QINDEX[state.active] !== undefined ? state.round + ':' + state.active : 'welcome';
   if (key !== panelKey) {
     panelKey = key;
+    document.body.setAttribute('data-screen', key === 'welcome' ? 'start' : 'results');
     if (!state || !state.active || QINDEX[state.active] === undefined) renderWelcome();
     else renderQuestion(QUESTIONS[QINDEX[state.active]]);
   }
@@ -299,15 +335,20 @@ function renderDock() {
   dockKey = k;
   const dock = document.getElementById('dock');
   dock.innerHTML = '';
+  dock.appendChild(h('button', { class: 'dbtn start' + (!active || QINDEX[active] === undefined ? ' on' : ''), text: 'Start', title: 'Ekran startowy z kodem QR', onclick: function () { setActive(null); } }));
   QUESTIONS.forEach(function (q, i) {
-    dock.appendChild(h('button', { class: 'dbtn q' + (active === q.id ? ' on' : ''), title: q.text, text: (i + 1) + '. ' + q.text, onclick: function () { setActive(q.id); } }));
+    dock.appendChild(h('button', { class: 'dbtn q' + (active === q.id ? ' on' : ''), title: q.text, onclick: function () { setActive(q.id); } }, [
+      h('span', { class: 'full', text: (i + 1) + '. ' + q.text }),
+      h('span', { class: 'short', text: String(i + 1) })
+    ]));
   });
   dock.appendChild(h('span', { class: 'sp' }));
-  dock.appendChild(h('button', { class: 'dbtn', text: state && state.hidden ? 'Pokaż wyniki' : 'Ukryj wyniki', onclick: toggleHidden }));
-  dock.appendChild(h('button', { class: 'dbtn' + (!active || QINDEX[active] === undefined ? ' on' : ''), text: 'Start', title: 'Ekran startowy z kodem QR', onclick: function () { setActive(null); } }));
-  dock.appendChild(h('button', { class: 'dbtn', text: 'Duży QR', onclick: function () { document.getElementById('qrfull').classList.add('show'); } }));
-  dock.appendChild(h('button', { class: 'dbtn warn', text: resetArmed ? 'Na pewno? Kliknij jeszcze raz' : 'Wyzeruj wyniki', onclick: resetResults }));
-  dock.appendChild(h('span', { class: 'kbd', text: '← → pytania · H ukryj · S start · Q kod' }));
+  dock.appendChild(h('button', { class: 'dbtn wide', text: state && state.hidden ? 'Pokaż wyniki' : 'Ukryj wyniki', onclick: toggleHidden }));
+  dock.appendChild(h('button', { class: 'dbtn wide', text: 'Duży QR', onclick: function () { document.getElementById('qrfull').classList.add('show'); } }));
+  dock.appendChild(h('button', { class: 'dbtn wide warn', onclick: resetResults }, [
+    h('span', { class: 'full', text: resetArmed ? 'Na pewno? Kliknij znów' : 'Wyzeruj wyniki' }),
+    h('span', { class: 'short', text: resetArmed ? 'Na pewno?' : 'Wyzeruj' })
+  ]));
 }
 
 /* ---------- actions ---------- */
@@ -370,11 +411,9 @@ function step(dir) {
 document.addEventListener('keydown', function (e) {
   if (!BOOT) return;
   if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) return;
-  if (e.key === 'ArrowRight') step(1);
-  else if (e.key === 'ArrowLeft') step(-1);
-  else if (e.key === 'h' || e.key === 'H') toggleHidden();
-  else if (e.key === 's' || e.key === 'S') setActive(null);
-  else if (e.key === 'q' || e.key === 'Q') document.getElementById('qrfull').classList.toggle('show');
+  // Arrows and PageUp/PageDown are what presentation clickers send.
+  if (e.key === 'ArrowRight' || e.key === 'PageDown') { e.preventDefault(); step(1); }
+  else if (e.key === 'ArrowLeft' || e.key === 'PageUp') { e.preventDefault(); step(-1); }
   else if (e.key === 'Escape') document.getElementById('qrfull').classList.remove('show');
 });
 
