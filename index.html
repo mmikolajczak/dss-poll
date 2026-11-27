@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="pl">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -129,6 +129,23 @@ let BOOT = null;
 let QUESTIONS = [];
 const QINDEX = {};
 
+/* ---------- English copy (question text comes from the server in Polish; answers are stored by option index) ---------- */
+const EN = {
+  q1: { text: 'Where do you work?', options: ['Hospital / healthcare provider', 'Medtech / healthtech', 'Pharma / life sciences', 'IT vendor / consulting', 'Research / academia', 'Other'] },
+  q2: { text: 'How far along is AI in your organization?', options: ['Not deploying yet', 'Pilot / PoC', 'Production – internal use', 'Production – with patients or customers'] },
+  q3: { text: 'What worries you most about attacks on AI?', options: ['Data loss through our own AI systems (e.g. prompt injection)', 'Data loss at external AI vendors', 'Results that can’t be trusted (manipulated model)', 'Losing the model and IP', 'Systems going down (e.g. ransomware, infrastructure attacks)'] },
+  q4: { text: 'Have you had a security incident caused directly by an attack on AI?', options: ['Yes', 'We were attacked, but without damage', 'No', 'I don’t know'] },
+  q5: { text: 'Want the discussion notes and AI security guidelines?', hint: 'Leave your email – we’ll send them after the event.', consent: 'I’d also like occasional materials from datarabbit on AI security in healthcare.', privacy: 'We’ll only use your email to send the notes, unless you tick the box above.' }
+};
+function localize(qs) {
+  return (qs || []).map(function (q) {
+    const en = EN[q.id];
+    if (!en) return q;
+    if (en.options && (!q.options || q.options.length !== en.options.length)) return q;
+    return Object.assign({}, q, en);
+  });
+}
+
 /* ---------- transport ---------- */
 function api(action, params) {
   const q = new URLSearchParams(Object.assign({ action: action, _: String(Date.now()) }, params || {}));
@@ -204,8 +221,8 @@ function renderConnecting() {
   main.innerHTML = '';
   main.appendChild(h('div', { class: 'card center' }, [
     h('div', { class: 'icon wait' }, [h('span')]),
-    h('h3', { text: 'Łączę…' }),
-    h('p', { text: 'Chwileczkę.' })
+    h('h3', { text: 'Connecting…' }),
+    h('p', { text: 'One moment.' })
   ]));
   setBar(null);
 }
@@ -215,8 +232,8 @@ function questionHead(q, i) {
   return [
     h('div', { class: 'steps' }, QUESTIONS.map(function (x, k) { return h('span', { class: k < i ? 'done' : k === i ? 'now' : '' }); })),
     h('div', { class: 'qmeta' }, [
-      h('span', { text: 'Pytanie ' + (i + 1) + ' z ' + n }),
-      i > 0 ? h('button', { class: 'back', type: 'button', text: '‹ Wstecz', onclick: function () { go(i - 1); } }) : null
+      h('span', { text: 'Question ' + (i + 1) + ' of ' + n }),
+      i > 0 ? h('button', { class: 'back', type: 'button', text: '‹ Back', onclick: function () { go(i - 1); } }) : null
     ]),
     h('h2', { text: q.text }),
     (q.hint || q.type === 'multi') ? h('div', { class: 'hintrow' }, [
@@ -231,7 +248,7 @@ function renderChoice(q, i) {
   const max = multi ? (q.max || 2) : 1;
   const prev = myAnswer(q.id);
   selection = prev && prev.choices ? prev.choices.slice() : [];
-  const nextBtn = h('button', { class: 'btn primary', text: 'Dalej', onclick: function () { answer(q, i, { choices: selection.slice() }); } });
+  const nextBtn = h('button', { class: 'btn primary', text: 'Next', onclick: function () { answer(q, i, { choices: selection.slice() }); } });
   const opts = h('div', { class: 'opts' });
   let locked = false;
   const buttons = q.options.map(function (label, k) {
@@ -242,7 +259,7 @@ function renderChoice(q, i) {
       if (multi) {
         if (at >= 0) selection.splice(at, 1);
         else if (selection.length < max) selection.push(k);
-        else { const c = document.getElementById('counter'); if (c) { c.classList.remove('shake'); void c.offsetWidth; c.classList.add('shake'); } toast('Możesz wybrać maksymalnie ' + max); return; }
+        else { const c = document.getElementById('counter'); if (c) { c.classList.remove('shake'); void c.offsetWidth; c.classList.add('shake'); } toast('You can pick up to ' + max); return; }
         paint();
       } else {
         // One tap is enough: show the choice for a moment, then move on.
@@ -271,16 +288,16 @@ function renderChoice(q, i) {
 
 function renderEmail(q, i) {
   const prev = myAnswer(q.id);
-  const input = h('input', { type: 'email', inputmode: 'email', autocomplete: 'email', placeholder: 'twoj@email.com', 'aria-label': 'E-mail' });
+  const input = h('input', { type: 'email', inputmode: 'email', autocomplete: 'email', placeholder: 'you@email.com', 'aria-label': 'E-mail' });
   if (prev && prev.email) input.value = prev.email;
   const consent = h('input', { type: 'checkbox' });
   if (prev && prev.consent) consent.checked = true;
-  const sendBtn = h('button', { class: 'btn primary', text: 'Wyślij', onclick: function () {
+  const sendBtn = h('button', { class: 'btn primary', text: 'Send', onclick: function () {
     const email = input.value.trim();
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) { input.focus(); input.classList.remove('shake'); void input.offsetWidth; input.classList.add('shake'); toast('Sprawdź adres e-mail'); return; }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) { input.focus(); input.classList.remove('shake'); void input.offsetWidth; input.classList.add('shake'); toast('Check your email address'); return; }
     answer(q, i, { email: email, consent: consent.checked });
   } });
-  const skipBtn = h('button', { class: 'btn ghost', text: 'Pomiń', onclick: function () {
+  const skipBtn = h('button', { class: 'btn ghost', text: 'Skip', onclick: function () {
     store.set(localKeyFor(round, q.id), JSON.stringify({ skipped: true }));
     go(i + 1);
   } });
@@ -300,10 +317,10 @@ function renderDone() {
   main.innerHTML = '';
   main.appendChild(h('div', { class: 'card center' }, [
     h('div', { class: 'icon ok' }, [h('span')]),
-    h('h3', { text: 'Dzięki!' }),
-    h('p', { text: mail && mail.email ? 'Odpowiedzi zapisane. Notatki wyślemy po evencie.' : 'Odpowiedzi zapisane.' }),
-    h('p', { class: 'after', text: 'Wyniki omówimy za chwilę przy stole.' }),
-    h('button', { class: 'link', type: 'button', text: 'Zmień odpowiedzi', onclick: function () { go(0); } })
+    h('h3', { text: 'Thanks!' }),
+    h('p', { text: mail && mail.email ? 'Answers saved. We’ll send the notes after the event.' : 'Answers saved.' }),
+    h('p', { class: 'after', text: 'We’ll go through the results together at the table.' }),
+    h('button', { class: 'link', type: 'button', text: 'Change answers', onclick: function () { go(0); } })
   ]));
   setBar(null);
 }
@@ -362,7 +379,7 @@ function deliver() {
       if (!(res && res.ok)) {
         // Rejected for good (bad input): reopen that question.
         store.remove(localKeyFor(item.round, item.qid));
-        toast(res && res.reason === 'email' ? 'Sprawdź adres e-mail' : 'Nie udało się zapisać odpowiedzi – spróbuj jeszcze raz.');
+        toast(res && res.reason === 'email' ? 'Check your email address' : 'Couldn’t save your answer – please try again.');
         if (item.round === round && QINDEX[item.qid] !== undefined) go(QINDEX[item.qid]);
       }
       deliver();
@@ -371,7 +388,7 @@ function deliver() {
       delivering = false;
       const tries = (item.tries || 0) + 1;
       outboxWrite(outboxRead().map(function (x) { if (sameItem(x, item)) x.tries = tries; return x; }));
-      if (tries === 3) toast('Słabe połączenie – odpowiedzi wyślę, jak tylko się da.');
+      if (tries === 3) toast('Weak connection – your answers will be sent as soon as possible.');
       deliverTimer = setTimeout(deliver, Math.min(tries, 5) * 2000);
     });
 }
@@ -408,7 +425,7 @@ function start() {
     .then(function (res) {
       const cfg = res[0];
       BOOT = cfg;
-      QUESTIONS = cfg.questions;
+      QUESTIONS = localize(cfg.questions);
       QUESTIONS.forEach(function (q, i) { QINDEX[q.id] = i; });
       document.getElementById('eyebrow').textContent = cfg.event.label;
       document.getElementById('title').textContent = cfg.event.title;
@@ -418,7 +435,7 @@ function start() {
     })
     .catch(function () {
       failures++;
-      if (failures === 2) toast('Słabe połączenie – ponawiam…');
+      if (failures === 2) toast('Weak connection – retrying…');
       setTimeout(start, 2000 + Math.min(failures, 5) * 1000);
     });
 }
